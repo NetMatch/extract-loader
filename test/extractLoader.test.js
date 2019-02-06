@@ -23,15 +23,15 @@ describe("extractLoader", () => {
         }));
     it("should extract the html of modules/simple.html into simple.html", () =>
         compile({testModule: "simple.html"}).then(() => {
+            const originalContent = fs.readFileSync(
+                path.resolve(__dirname, "modules/simple.html"),
+                "utf8"
+            );
             const simpleHtml = path.resolve(__dirname, "dist/simple-dist.html");
 
-            expect(simpleHtml).to.be.a.file();
-            expect(simpleHtml).to.have.content(
-                fs.readFileSync(
-                    path.resolve(__dirname, "modules/simple.html"),
-                    "utf8"
-                )
-            );
+            expect(simpleHtml)
+                .to.be.a.file()
+                .with.contents.that.match(new RegExp(originalContent));
         }));
     it("should extract the css of modules/simple.css into simple.css", () =>
         compile({testModule: "simple.css"}).then(() => {
@@ -48,7 +48,8 @@ describe("extractLoader", () => {
         compile({testModule: "simple.css"}).then(() => {
             const simpleCss = path.resolve(__dirname, "dist/simple-dist.css");
 
-            expect(simpleCss).to.be.a.file()
+            expect(simpleCss)
+                .to.be.a.file()
                 .with.contents.that.match(/\/\*# sourceMappingURL=data:application\/json;charset=utf-8;base64,/);
         }));
     it("should extract the img url into img.js", () => compile({testModule: "img.js"}).then(() => {
@@ -121,11 +122,11 @@ describe("extractLoader", () => {
 
             expect(dependencies.sort()).to.eql(
                 [
-                    "/node_modules/css-loader/lib/css-base.js",
-                    "/node_modules/css-loader/lib/url/escape.js",
-                    "/test/modules/hi.jpg",
-                    "/test/modules/img.css",
-                    "/test/modules/stylesheet.html",
+                    `${path.sep}node_modules${path.sep}css-loader${path.sep}lib${path.sep}css-base.js`,
+                    `${path.sep}node_modules${path.sep}css-loader${path.sep}lib${path.sep}url${path.sep}escape.js`,
+                    `${path.sep}test${path.sep}modules${path.sep}hi.jpg`,
+                    `${path.sep}test${path.sep}modules${path.sep}img.css`,
+                    `${path.sep}test${path.sep}modules${path.sep}stylesheet.html`,
                 ].sort()
             );
         }));
@@ -178,7 +179,7 @@ describe("extractLoader", () => {
         const errJs = path.resolve(__dirname, "dist/err.js");
 
         expect(loaderHtml).to.be.a.file();
-        expect(errJs).to.have.content("this is a syntax error\n");
+        expect(errJs).to.have.content.that.match(/this is a syntax error/);
     }));
     it("should report syntax errors", () =>
         compile({testModule: "error-syntax.js"}).then(

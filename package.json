@@ -6,7 +6,9 @@
   "scripts": {
     "build": "babel src -d lib",
     "test": "cross-env NODE_ENV=test nyc mocha -R spec",
+    "test:debug": "cross-env NODE_ENV=test nyc mocha --inspect-brk -R spec",
     "posttest": "eslint src test",
+    "posttest:fix": "eslint src test --fix",
     "release": "standard-version",
     "prepublishOnly": "npm test"
   },
@@ -42,7 +44,7 @@
     "css-loader": "^1.0.0",
     "eslint": "^5.4.0",
     "eslint-config-peerigon": "^15.0.2",
-    "file-loader": "^2.0.0",
+    "file-loader": "github:NetMatch/file-loader#master",
     "html-loader": "^0.5.5",
     "mocha": "^5.2.0",
     "nyc": "^13.0.1",

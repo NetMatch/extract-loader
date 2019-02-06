@@ -25,6 +25,7 @@ async function extractLoader(src) {
     const done = this.async();
     const options = getOptions(this) || {};
     const publicPath = getPublicPath(options, this);
+    const outputPath = options.useOutputPathForRelative ? this.data.outputPath : null;
 
     this.cacheable();
 
@@ -34,13 +35,14 @@ async function extractLoader(src) {
             src,
             filename: this.resourcePath,
             publicPath,
+            outputPath,
         }));
     } catch (error) {
         done(error);
     }
 }
 
-function evalDependencyGraph({loaderContext, src, filename, publicPath = ""}) {
+function evalDependencyGraph({loaderContext, src, filename, publicPath = "", outputPath = null}) {
     const moduleCache = new Map();
 
     function loadModule(filename) {
@@ -141,7 +143,22 @@ function evalDependencyGraph({loaderContext, src, filename, publicPath = ""}) {
         const contentWithPlaceholders = extractExports(sandbox.module.exports);
         const extractedContent = contentWithPlaceholders.replace(
             rndPlaceholderPattern,
-            () => extractedDependencyContent.shift()
+            () => {
+                const resolvedPath = extractedDependencyContent.shift();
+                let filePath = resolvedPath;
+
+                if (outputPath) {
+                    const output = seperateDirFormFile(outputPath);
+                    const resolved = seperateDirFormFile(resolvedPath);
+                    const relativeDir = (output.dir === resolved.dir) ?
+                        "" :
+                        path.posix.relative(output.dir, resolved.dir) + "/";
+
+                    filePath = relativeDir + resolved.file;
+                }
+
+                return filePath;
+            }
         );
 
         moduleCache.set(filename, extractedContent);
@@ -150,6 +167,22 @@ function evalDependencyGraph({loaderContext, src, filename, publicPath = ""}) {
     }
 
     return evalModule(src, filename);
+}
+
+function seperateDirFormFile(pathWithFile) {
+    const indexOfLastSlash = pathWithFile.lastIndexOf("/");
+
+    if (indexOfLastSlash === -1) {
+        return {
+            dir: "",
+            file: pathWithFile,
+        };
+    }
+
+    return {
+        dir: pathWithFile.slice(0, indexOfLastSlash),
+        file: pathWithFile.slice(indexOfLastSlash + 1),
+    };
 }
 
 /**
