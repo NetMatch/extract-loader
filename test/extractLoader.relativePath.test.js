@@ -29,7 +29,7 @@ describe("extractLoader - Relative Paths", () => {
             expect(styleHtml).to.have.content.that.match(/<img src="hi-dist\.jpg">/);
         })
     );
-    it("should reslove relative paths correctly when handling nested folders", () =>
+    it("should resolve relative paths correctly when handling nested folders", () =>
         compileNested({
             testModule: "deep.html",
             loaderOptions: {useOutputPathForRelative: true},
